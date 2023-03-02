@@ -20,7 +20,7 @@ final class Connection
      */
     public function connect()
     {
-        $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+        $databaseUrl = parse_url($_ENV['DATABASE_URL']) ?? null;
         if (isset($databaseUrl['port'])) {
             $params['user'] = $databaseUrl['user']; // janedoe
             $params['password'] = $databaseUrl['pass']; // mypassword
