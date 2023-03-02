@@ -20,21 +20,24 @@ final class Connection
      */
     public function connect()
     {
-        $databaseUrl = parse_url($_ENV['DATABASE_URL']) ?? null;
+        if (array_key_exists('DATABASE_URL', $_ENV)) {
+            $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+        }
+
         if (isset($databaseUrl['port'])) {
-            $params['user'] = $databaseUrl['user']; // janedoe
-            $params['password'] = $databaseUrl['pass']; // mypassword
-            $params['host'] = $databaseUrl['host']; // localhost
-            $params['port'] = $databaseUrl['port']; // 5432
+            $params['user'] = $databaseUrl['user'];
+            $params['password'] = $databaseUrl['pass'];
+            $params['host'] = $databaseUrl['host'];
+            $params['port'] = $databaseUrl['port'];
             $params['database'] = ltrim($databaseUrl['path'], '/');    
         } else {
             $params = parse_ini_file('database.ini');
         }
+
         if ($params === false) {
             throw new \Exception("Error reading database configuration file");
         }
 
-        // подключение к базе данных postgresql
         $conStr = sprintf(
             "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
             $params['host'],
@@ -51,7 +54,6 @@ final class Connection
     }
 
     /**
-     * возврат экземпляра объекта Connection
      * тип @return
      */
     public static function get()
