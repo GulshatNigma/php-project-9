@@ -3,6 +3,7 @@
     "description": "php-project-9",
     "license": "MIT",
     "autoload": {
+        "files": ["postgresqlphpconnect/Connection.php"],
         "psr-4": {
             "Hexlet\\Code\\": "src/"
         }
@@ -20,6 +21,12 @@
         "slim/php-view": "^3.2",
         "php-di/php-di": "^7.0",
         "slim/flash": "^0.4.0",
-        "squizlabs/php_codesniffer": "*"
+        "squizlabs/php_codesniffer": "*",
+        "vlucas/valitron": "^1.4",
+        "symfony/debug-bundle": "^6.2"
+    },
+    "require": {
+        "nesbot/carbon": "^2.66",
+        "illuminate/support": "^10.1"
     }
 }
