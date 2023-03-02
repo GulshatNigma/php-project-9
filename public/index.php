@@ -11,13 +11,13 @@ use Valitron\Validator;
 use Postgresqlphpconnect\Page\Analyzer\Connection;
 use Illuminate\Support\Arr;
 
+session_start();
+
 try {
     $pdo = Connection::get()->connect();
 } catch (\PDOException $e) {
     echo $e->getMessage();
 }
-
-session_start();
 
 $container = new Container();
 $container->set('renderer', function () {
@@ -109,7 +109,8 @@ $app->get('/urls', function($request, $response) use ($router) {
     return $this->get('renderer')->render($response, 'sites.phtml', $params);
 });
 
-$app->get('/urls/{id}', function ($request, $response, $args) use ($pdo) {
+$app->get('/urls/{id}', function ($request, $response, $args) {
+    $pdo = Connection::get()->connect();
     $id = $args['id'];
     $flash = $this->get('flash')->getMessages();
     $sql = "SELECT name, created_at FROM urls WHERE id='$id'";

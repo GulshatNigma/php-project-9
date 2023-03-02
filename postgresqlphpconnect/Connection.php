@@ -20,20 +20,19 @@ final class Connection
      */
     public function connect()
     {
-        // чтение параметров в файле конфигурации ini
-        $params = parse_ini_file('database.ini');
+        $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+        if (isset($databaseUrl['port'])) {
+            $params['user'] = $databaseUrl['user']; // janedoe
+            $params['password'] = $databaseUrl['pass']; // mypassword
+            $params['host'] = $databaseUrl['host']; // localhost
+            $params['port'] = $databaseUrl['port']; // 5432
+            $params['database'] = ltrim($databaseUrl['path'], '/');    
+        } else {
+            $params = parse_ini_file('database.ini');
+        }
         if ($params === false) {
             throw new \Exception("Error reading database configuration file");
         }
-
-        /*$databaseUrl = parse_url($_ENV['DATABASE_URL']);
-        $params['user'] = $databaseUrl['user']; // janedoe
-        $params['password'] = $databaseUrl['pass']; // mypassword
-        $params['host'] = $databaseUrl['host']; // localhost
-        $params['port'] = $databaseUrl['port']; // 5432
-        $params['database'] = ltrim($databaseUrl['path'], '/');
-        этот фрагмент был в описании
-        */
 
         // подключение к базе данных postgresql
         $conStr = sprintf(
