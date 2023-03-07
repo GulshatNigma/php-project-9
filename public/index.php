@@ -41,7 +41,7 @@ $app->get('/', function ($request, $response) use ($router) {
     return $this->get("renderer")->render($response, 'main.phtml', $params);
 })->setName('main');
 
-$app->post('/urls', function($request, $response) use ($router) {
+$app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
     $urlName = $urlData['name'];
 
@@ -97,14 +97,25 @@ $app->post('/urls', function($request, $response) use ($router) {
     return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
 });
 
-$app->get('/urls', function($request, $response) use ($router) {
+$app->get('/urls', function ($request, $response) use ($router) {
     $sql = "SELECT * FROM urls";
     $pdo = Connection::get()->connect();
     $result = $pdo->query($sql);
     $urls = $result->fetchAll(PDO::FETCH_ASSOC);
 
+    $lastChecks = [];
+    foreach ($urls as $url) {
+        $id = $url['id'];
+        $sql = "SELECT created_at FROM url_checks WHERE url_id = $id";
+        $pdo = Connection::get()->connect();
+        $result = $pdo->query($sql);
+        $dateOfCheck = $result->fetchAll(PDO::FETCH_ASSOC);
+        $lastChecks[$id] = end($dateOfCheck)['created_at'];
+    }
     $params = [
+        'lastChecks' => $lastChecks,
         'urls' => array_reverse($urls),
+        'dateOfCheck' => $dateOfCheck
     ];
     return $this->get('renderer')->render($response, 'sites.phtml', $params);
 });
@@ -116,9 +127,28 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $sql = "SELECT name, created_at FROM urls WHERE id='$id'";
     $result = $pdo->query($sql);
     $row = $result->fetch(PDO::FETCH_ASSOC);
+
+    $pdo = Connection::get()->connect();
+    $sql = "SELECT id, created_at FROM url_checks WHERE url_id = $id";
+    $result = $pdo->query($sql);
+    $urlChecks = $result->fetchAll(PDO::FETCH_ASSOC);
+
     $params = ['flash' => $flash,
-                'id' => $id, 'name' => $row['name'], 'created_at' => $row['created_at']];
-    return $this->get('renderer')->render($response, 'show.phtml', $params); 
+                'id' => $id, 'name' => $row['name'], 'created_at' => $row['created_at'],
+                 'urlChecks' => array_reverse($urlChecks)];
+    return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName('get user');
+
+$app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
+    $pdo = Connection::get()->connect();
+    $id = $args['url_id'];
+    $carbon = new Carbon();
+    $createdAt = $carbon->now();
+
+    $sql = "INSERT INTO url_checks (url_id, created_at) VALUES(:url_id, :created_at)";
+    $sth = $pdo->prepare($sql);
+    $sth->execute(['url_id' => $id, 'created_at' => $createdAt]);
+    return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
+});
 
 $app->run();

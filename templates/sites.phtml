@@ -42,7 +42,7 @@
                             <tr>
                                 <th><?= $url['id']?></th>
                                 <th><a href="/urls/<?= $url['id']?>"><?= $url['name']?></a></th>
-                                <th></th>
+                                <th><?= $lastChecks[$url['id']]?> </th>
                                 <th></th>
                             </tr>
                         <?php endforeach ?>

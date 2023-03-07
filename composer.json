@@ -27,6 +27,7 @@
     },
     "require": {
         "nesbot/carbon": "^2.66",
-        "illuminate/support": "^10.1"
+        "illuminate/support": "^10.1",
+        "vlucas/phpdotenv": "^5.5"
     }
 }

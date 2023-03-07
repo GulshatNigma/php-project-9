@@ -28,7 +28,7 @@
         </nav>
     </header>
 
-    <?php if (count($flash) > 0) : ?>
+    <?php if (!isset($flash)) : ?>
         <div class="alert alert-success" role="alert">
         <?php foreach ($flash as $messages) : ?>
             <?php foreach ($messages as $message) : ?>
@@ -60,7 +60,7 @@
                 </table>
             </div>
             <h2 class="mt-5 mb-3">Проверки</h2>
-                <form method="post" action="/urls/1/checks">
+                <form method="post" action="/urls/<?= $id?>/checks">
                     <input type="submit" class="btn btn-primary" value="Запустить проверку">
                 </form>
             <table class="table table-bordered table-hover" data-test="checks">
@@ -73,6 +73,18 @@
                         <th>description</th>
                         <th>Дата создания</th>
                     </tr>
+                    <?php if (isset($urlChecks)): ?>
+                            <?php foreach ($urlChecks as $urlCheck) : ?>
+                                <tr>
+                                    <th><?= $urlCheck['id'] ?></th>
+                                    <th>Код ответа</th>
+                                    <th>h1</th>
+                                    <th>title</th>
+                                    <th>description</th>
+                                    <th><?= $urlCheck['created_at'] ?></th>
+                                </tr>
+                            <?php endforeach ?>
+                        <?php endif ?>
                 </tbody>
             </table>
         </div>
