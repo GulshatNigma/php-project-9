@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Valitron\Validator;
 use Postgresqlphpconnect\Page\Analyzer\Connection;
 use Illuminate\Support\Arr;
+use GuzzleHttp\Client;
+use DiDom\Document;
 
 session_start();
 
@@ -106,16 +108,18 @@ $app->get('/urls', function ($request, $response) use ($router) {
     $lastChecks = [];
     foreach ($urls as $url) {
         $id = $url['id'];
-        $sql = "SELECT created_at FROM url_checks WHERE url_id = $id";
+        $sql = "SELECT created_at, status_code FROM url_checks WHERE url_id = $id";
         $pdo = Connection::get()->connect();
         $result = $pdo->query($sql);
         $dateOfCheck = $result->fetchAll(PDO::FETCH_ASSOC);
         $lastChecks[$id] = end($dateOfCheck)['created_at'];
+        $lastStatusCode[$id] = end($dateOfCheck)['status_code'];
     }
     $params = [
         'lastChecks' => $lastChecks,
         'urls' => array_reverse($urls),
-        'dateOfCheck' => $dateOfCheck
+        'dateOfCheck' => $dateOfCheck,
+        'statusCode' => $lastStatusCode,
     ];
     return $this->get('renderer')->render($response, 'sites.phtml', $params);
 });
@@ -129,7 +133,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $row = $result->fetch(PDO::FETCH_ASSOC);
 
     $pdo = Connection::get()->connect();
-    $sql = "SELECT id, created_at FROM url_checks WHERE url_id = $id";
+    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = $id";
     $result = $pdo->query($sql);
     $urlChecks = $result->fetchAll(PDO::FETCH_ASSOC);
 
@@ -140,14 +144,49 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 })->setName('get user');
 
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
-    $pdo = Connection::get()->connect();
     $id = $args['url_id'];
+    $pdo = Connection::get()->connect();
+
+    $sql = "SELECT name FROM urls WHERE id='$id'";
+    $result = $pdo->query($sql);
+    $row = $result->fetch(PDO::FETCH_ASSOC);
+    $name = $row['name'];
+
     $carbon = new Carbon();
     $createdAt = $carbon->now();
 
-    $sql = "INSERT INTO url_checks (url_id, created_at) VALUES(:url_id, :created_at)";
+
+    $client = new Client(['base_url' => '$name']);
+
+    try {
+        $res = $client->request('GET', $name);
+        $statusCode = $res->getStatusCode();
+        $this->get('flash')->addMessage('success', "Страница успешно проверена");
+    } catch (Exception) {
+        $this->get('flash')->addMessage('danger', "Проверка была выполнена успешно, но сервер ответил с ошибкой");
+        $statusCode = "404";
+    }
+
+    //step 6
+       $body = (string) ($res->getBody());
+       $document = new Document($body);
+
+       $h1Array = $document->find('h1');
+       $h1 = $h1Array[0]->text();
+
+       $titleArray = $document->find('title');
+       $title = $titleArray[0]->text();
+
+       $descriptionArray = $document->find('meta[name=description]');
+       $description = optional($descriptionArray[0])->content;
+    //
+
+    $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description)
+            VALUES(:url_id, :created_at, :status_code, :h1, :title, :description)";
     $sth = $pdo->prepare($sql);
-    $sth->execute(['url_id' => $id, 'created_at' => $createdAt]);
+    $sth->execute(['url_id' => $id, 'created_at' => $createdAt,
+                    'status_code' => $statusCode, 'h1' => $h1,
+                    'title' => $title, 'description' => $description]);
     return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
 });
 

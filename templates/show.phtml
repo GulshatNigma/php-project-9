@@ -28,14 +28,14 @@
         </nav>
     </header>
 
-    <?php if (!isset($flash)) : ?>
-        <div class="alert alert-success" role="alert">
+    <?php if (isset($flash)) : ?>
         <?php foreach ($flash as $messages) : ?>
+            <div class="alert alert-success" role="alert">
             <?php foreach ($messages as $message) : ?>
                 <?= $message ?>
             <?php endforeach ?>
+            </div>
         <?php endforeach ?>
-        </div>
     <?php endif ?>
 
     <main class="flex-grow-1">
@@ -77,10 +77,10 @@
                             <?php foreach ($urlChecks as $urlCheck) : ?>
                                 <tr>
                                     <th><?= $urlCheck['id'] ?></th>
-                                    <th>Код ответа</th>
-                                    <th>h1</th>
-                                    <th>title</th>
-                                    <th>description</th>
+                                    <th><?= $urlCheck['status_code'] ?></th>
+                                    <th><?= $urlCheck['h1'] ?></th>
+                                    <th><?= $urlCheck['title'] ?></th>
+                                    <th><?= $urlCheck['description'] ?></th>
                                     <th><?= $urlCheck['created_at'] ?></th>
                                 </tr>
                             <?php endforeach ?>

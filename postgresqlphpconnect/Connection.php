@@ -20,6 +20,7 @@ final class Connection
      */
     public function connect()
     {
+        //нужно будет исправить
         if (array_key_exists('DATABASE_URL', $_ENV)) {
             $databaseUrl = parse_url($_ENV['DATABASE_URL']);
         }
