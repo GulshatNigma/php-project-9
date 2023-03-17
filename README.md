@@ -4,3 +4,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/221babf6fde3c48a28fc/maintainability)](https://codeclimate.com/github/GulshatNigma/php-project-9/maintainability)
 
 Ссылка на домен: https://php-project-9-production-29fd.up.railway.app
+
+
+## Анализатор страниц
+«Анализатор страниц» — сайт, который анализирует указанные страницы на SEO пригодность.
