@@ -1,7 +1,5 @@
 <?php
 
-namespace Postgresqlphpconnect\Page\Analyzer;
-
 /**
  * Создание класса Connection
  */

@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . "/../vendor/autoload.php";
+require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
@@ -8,14 +8,13 @@ use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use Carbon\Carbon;
 use Valitron\Validator;
-use Postgresqlphpconnect\Page\Analyzer\Connection;
 use Illuminate\Support\Arr;
 use GuzzleHttp\Client;
 use DiDom\Document;
 
 session_start();
 
-$container = new DI\Container();
+$container = new Container();
 
 $container->set('renderer', function () {
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
@@ -162,7 +161,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $statusCode = "404";
     }
 
-    //step 6
        $body = (string) ($res->getBody());
        $document = new Document($body);
 
@@ -174,7 +172,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
        $descriptionArray = $document->find('meta[name=description]');
        $description = optional($descriptionArray[0])->content;
-    //
 
     $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description)
             VALUES(:url_id, :created_at, :status_code, :h1, :title, :description)";
