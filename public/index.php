@@ -15,13 +15,8 @@ use DiDom\Document;
 
 session_start();
 
-try {
-    $pdo = Connection::get()->connect();
-} catch (\PDOException $e) {
-    echo $e->getMessage();
-}
+$container = new DI\Container();
 
-$container = new Container();
 $container->set('renderer', function () {
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
 });
