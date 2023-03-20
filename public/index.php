@@ -161,17 +161,23 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $statusCode = "404";
     }
 
-       $body = (string) ($res->getBody());
-       $document = new Document($body);
+    $body = (string) ($res->getBody());
+    $document = new Document($body);
 
-       $h1Array = $document->find('h1');
-       $h1 = $h1Array[0]->text();
+    $h1Array = $document->find('h1');
+    if (!empty($h1Array)) {
+        $h1 = $h1Array[0]->text();
+    }
 
-       $titleArray = $document->find('title');
-       $title = $titleArray[0]->text();
+    $titleArray = $document->find('title');
+    if (!empty($titleArray)) {
+        $title = $titleArray[0]->text();
+    }
 
-       $descriptionArray = $document->find('meta[name=description]');
-       $description = optional($descriptionArray[0])->content;
+    $descriptionArray = $document->find('meta[name=description]');
+    if (!empty($descriptionArray)) {
+        $description = optional($descriptionArray[0])->content;
+    }
 
     $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description)
             VALUES(:url_id, :created_at, :status_code, :h1, :title, :description)";
