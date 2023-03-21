@@ -1,5 +1,7 @@
 <?php
 
+namespace Page\Analyser;
+
 /**
  * Создание класса Connection
  */
@@ -18,7 +20,6 @@ final class Connection
      */
     public function connect()
     {
-        //нужно будет исправить
         if (array_key_exists('DATABASE_URL', $_ENV)) {
             $databaseUrl = parse_url($_ENV['DATABASE_URL']);
         }
@@ -28,7 +29,7 @@ final class Connection
             $params['password'] = $databaseUrl['pass'];
             $params['host'] = $databaseUrl['host'];
             $params['port'] = $databaseUrl['port'];
-            $params['database'] = ltrim($databaseUrl['path'], '/');    
+            $params['database'] = ltrim($databaseUrl['path'], '/');
         } else {
             $params = parse_ini_file('database.ini');
         }
@@ -66,6 +67,5 @@ final class Connection
 
     protected function __construct()
     {
-
     }
 }
