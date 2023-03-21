@@ -105,14 +105,14 @@ $app->get('/urls', function ($request, $response) {
         $pdo = Connection::get()->connect();
         $result = $pdo->query($sql);
         $dateOfCheck = $result->fetchAll(PDO::FETCH_ASSOC);
-        $lastChecks[$id] = end($dateOfCheck)['created_at'] ?? null;
-        $lastStatusCode[$id] = end($dateOfCheck)['status_code'] ?? null;
+        $lastChecks[$id] = end($dateOfCheck)['created_at'];
+        $lastStatusCode[$id] = end($dateOfCheck)['status_code'];
     }
     $params = [
         'lastChecks' => $lastChecks,
         'urls' => array_reverse($urls),
-        'dateOfCheck' => $dateOfCheck,
-        'statusCode' => $lastStatusCode,
+        'dateOfCheck' => $dateOfCheck ?? null,
+        'statusCode' => $lastStatusCode ?? null,
     ];
     return $this->get('renderer')->render($response, 'sites.phtml', $params);
 });
