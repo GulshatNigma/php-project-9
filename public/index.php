@@ -41,6 +41,7 @@ $app->get('/', function ($request, $response) {
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
     $urlName = $urlData['name'];
+
     $validator = new Validator($urlData);
     $validator->rule('required', 'name')->message("URL не должен быть пустым");
     $validator->rule('url', 'name')->message("Некорректный URL");
@@ -54,6 +55,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         ];
         return $this->get('renderer')->render($response->withStatus(422), 'main.phtml', $params);
     }
+
     $carbon = new Carbon();
     $createdAt = $carbon->now();
     $pdo = Connection::get()->connect();
@@ -136,10 +138,6 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName('get user');
 
-/*$app->get('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
-    return $response->withStatus(404);
-});*/
-
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
     $pdo = Connection::get()->connect();
     $id = $args['url_id'];
@@ -160,6 +158,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $this->get('flash')->addMessage('danger', "Произошла ошибка при проверке, не удалось подключиться");
         return $response->withStatus(404)->withRedirect($router->urlFor('get user', ['id' => $id]));
     }
+
     $statusCode = $res->getStatusCode();
     $this->get('flash')->addMessage('success', "Страница успешно проверена");
 
