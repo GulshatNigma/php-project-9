@@ -28,8 +28,8 @@ final class Connection
             $params['user'] = $databaseUrl['user'] ?? null;
             $params['password'] = $databaseUrl['pass'] ?? null;
             $params['host'] = $databaseUrl['host'] ?? null;
-            $params['port'] = $databaseUrl['port'] ?? null;
-            $params['database'] = ltrim($databaseUrl['path'], '/') ?? null;
+            $params['port'] = $databaseUrl['port'];
+            $params['database'] = ltrim($databaseUrl['path'], '/');
         } else {
             $params = parse_ini_file('database.ini');
         }
