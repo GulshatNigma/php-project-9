@@ -33,7 +33,7 @@ $app->add(MethodOverrideMiddleware::class);
 
 $router = $app->getRouteCollector()->getRouteParser();
 
-$app->get('/', function ($request, $response) use ($router) {
+$app->get('/', function ($request, $response) {
     $params = ['url' => []];
     return $this->get("renderer")->render($response, 'main.phtml', $params);
 })->setName('main');
@@ -92,7 +92,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
 });
 
-$app->get('/urls', function ($request, $response) use ($router) {
+$app->get('/urls', function ($request, $response) {
     $sql = "SELECT * FROM urls";
     $pdo = Connection::get()->connect();
     $result = $pdo->query($sql);
@@ -105,8 +105,8 @@ $app->get('/urls', function ($request, $response) use ($router) {
         $pdo = Connection::get()->connect();
         $result = $pdo->query($sql);
         $dateOfCheck = $result->fetchAll(PDO::FETCH_ASSOC);
-        $lastChecks[$id] = end($dateOfCheck)['created_at'];
-        $lastStatusCode[$id] = end($dateOfCheck)['status_code'];
+        $lastChecks[$id] = end($dateOfCheck)['created_at'] ?? null;
+        $lastStatusCode[$id] = end($dateOfCheck)['status_code'] ?? null;
     }
     $params = [
         'lastChecks' => $lastChecks,
@@ -167,10 +167,10 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $document = new Document($body);
 
     $h1Array = $document->find('h1');
-    $h1 = !empty($h1Array) ? $h1Array[0]->text() : null;
+    $h1 = !empty($h1Array) ? optional($h1Array[0])->text() : null;
 
     $titleArray = $document->find('title');
-    $title = !empty($titleArray) ? $titleArray[0]->text() : null;
+    $title = !empty($titleArray) ? optional($titleArray[0])->text() : null;
 
     $descriptionArray = $document->find('meta[name=description]');
     $description = !empty($descriptionArray) ? optional($descriptionArray[0])->content : null;
