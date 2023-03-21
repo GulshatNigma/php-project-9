@@ -147,7 +147,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $carbon = new Carbon();
     $createdAt = $carbon->now();
 
-
     $client = new Client(['base_url' => '$name']);
 
     try {
@@ -158,24 +157,18 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     }
     $statusCode = $res->getStatusCode();
     $this->get('flash')->addMessage('success', "Страница успешно проверена");
-    
+
     $body = (string) ($res->getBody());
     $document = new Document($body);
 
     $h1Array = $document->find('h1');
-    if (!empty($h1Array)) {
-        $h1 = $h1Array[0]->text();
-    }
+    $h1 = !empty($h1Array) ? $h1Array[0]->text() : null;
 
     $titleArray = $document->find('title');
-    if (!empty($titleArray)) {
-        $title = $titleArray[0]->text();
-    }
+    $title = !empty($titleArray) ? $titleArray[0]->text() : null;
 
     $descriptionArray = $document->find('meta[name=description]');
-    if (!empty($descriptionArray)) {
-        $description = optional($descriptionArray[0])->content;
-    }
+    $description = !empty($descriptionArray) ? optional($descriptionArray[0])->content : null;
 
     $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description)
             VALUES(:url_id, :created_at, :status_code, :h1, :title, :description)";
