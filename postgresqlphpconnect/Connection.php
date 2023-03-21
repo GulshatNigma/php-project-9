@@ -26,7 +26,7 @@ final class Connection
 
         if (isset($databaseUrl['port'])) {
             $params['user'] = $databaseUrl['user'];
-            $params['password'] = $databaseUrl['password'];
+            $params['password'] = $databaseUrl['pass'];
             $params['host'] = $databaseUrl['host'];
             $params['port'] = $databaseUrl['port'];
             $params['database'] = ltrim($databaseUrl['path'], '/');
