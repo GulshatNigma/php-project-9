@@ -41,7 +41,6 @@
     <main class="flex-grow-1">
         <div class="container-lg mt-3">
             <h1>Сайт: <?= $name?></h1>
-            <div class="table-responsive">
                 <table class="table table-bordered table-hover text-nowrap" data-test="url">
                 <tbody>
                     <tr>
@@ -58,11 +57,11 @@
                     </tr>
                 </tbody>
                 </table>
-            </div>
             <h2 class="mt-5 mb-3">Проверки</h2>
                 <form method="post" action="/urls/<?= $id?>/checks">
                     <input type="submit" class="btn btn-primary" value="Запустить проверку">
                 </form>
+
             <table class="table table-bordered table-hover" data-test="checks">
                 <tbody>
                     <tr>
@@ -76,12 +75,12 @@
                     <?php if (isset($urlChecks)): ?>
                             <?php foreach ($urlChecks as $urlCheck) : ?>
                                 <tr>
-                                    <th><?= $urlCheck['id'] ?></th>
-                                    <th><?= $urlCheck['status_code'] ?></th>
-                                    <th><?= $urlCheck['h1'] ?></th>
-                                    <th><?= $urlCheck['title'] ?></th>
-                                    <th><?= $urlCheck['description'] ?></th>
-                                    <th><?= $urlCheck['created_at'] ?></th>
+                                    <td><?= $urlCheck['id'] ?></th>
+                                    <td><?= $urlCheck['status_code'] ?></th>
+                                    <td><?= $urlCheck['h1'] ?></th>
+                                    <td><?= $urlCheck['title'] ?></th>
+                                    <td><?= $urlCheck['description'] ?></th>
+                                    <td><?= $urlCheck['created_at'] ?></th>
                                 </tr>
                             <?php endforeach ?>
                         <?php endif ?>

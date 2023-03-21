@@ -40,10 +40,10 @@
                         </tr>
                         <?php foreach ($urls as $url) : ?>
                             <tr>
-                                <th><?= $url['id']?></th>
-                                <th><a href="/urls/<?= $url['id']?>"><?= $url['name']?></a></th>
-                                <th><?= $lastChecks[$url['id']]?></th>
-                                <th><?= $statusCode[$url['id']]?></th>
+                                <td><?= $url['id']?></th>
+                                <td><a href="/urls/<?= $url['id']?>"><?= $url['name']?></a></th>
+                                <td><?= $lastChecks[$url['id']]?></th>
+                                <td><?= $statusCode[$url['id']]?></th>
                             </tr>
                         <?php endforeach ?>
                     </tbody>

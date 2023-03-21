@@ -135,9 +135,13 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName('get user');
 
+/*$app->get('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
+    return $response->withStatus(404);
+});*/
+
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
-    $id = $args['url_id'];
     $pdo = Connection::get()->connect();
+    $id = $args['url_id'];
 
     $sql = "SELECT name FROM urls WHERE id='$id'";
     $result = $pdo->query($sql);
