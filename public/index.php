@@ -40,14 +40,12 @@ $app->get('/', function ($request, $response) use ($router) {
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
     $urlName = $urlData['name'];
-
     $validator = new Validator($urlData);
     $validator->rule('required', 'name')->message("URL не должен быть пустым");
     $validator->rule('url', 'name')->message("Некорректный URL");
     $validator->rule('lengthMax', 'name', 255)->message("URL не должен превышать 255 символов");
-    $validator->validate();
 
-    if (count($validator->errors()) !== 0) {
+    if (!$validator->validate()) {
         $error = $validator->errors();
         $params = [
             'url' => $urlName,
@@ -154,13 +152,13 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
     try {
         $res = $client->request('GET', $name);
-        $statusCode = $res->getStatusCode();
-        $this->get('flash')->addMessage('success', "Страница успешно проверена");
     } catch (Exception) {
-        $this->get('flash')->addMessage('danger', "Проверка была выполнена успешно, но сервер ответил с ошибкой");
-        $statusCode = "404";
+        $this->get('flash')->addMessage('danger', "Произошла ошибка при проверке, не удалось подключиться");
+        return $response->withStatus(404)->withRedirect($router->urlFor('get user', ['id' => $id]));
     }
-
+    $statusCode = $res->getStatusCode();
+    $this->get('flash')->addMessage('success', "Страница успешно проверена");
+    
     $body = (string) ($res->getBody());
     $document = new Document($body);
 
