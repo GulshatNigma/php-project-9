@@ -20,13 +20,13 @@ final class Connection
      */
     public function connect()
     {
-        if (array_key_exists('DATABASE_URL', $_ENV)) {
-            $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+        if (getenv('DATABASE_URL')) {
+            $databaseUrl = parse_url(getenv('DATABASE_URL'));
         }
 
         if (isset($databaseUrl['port'])) {
             $params['user'] = $databaseUrl['user'];
-            $params['password'] = $databaseUrl['pass'];
+            $params['password'] = $databaseUrl['pass'] ?? null;
             $params['host'] = $databaseUrl['host'];
             $params['port'] = $databaseUrl['port'];
             $params['database'] = ltrim($databaseUrl['path'], '/');
