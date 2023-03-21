@@ -11,6 +11,7 @@ use Valitron\Validator;
 use Illuminate\Support\Arr;
 use GuzzleHttp\Client;
 use DiDom\Document;
+use Page\Analyser\Connection;
 
 session_start();
 
