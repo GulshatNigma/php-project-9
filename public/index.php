@@ -42,7 +42,10 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
     $urlName = $urlData['name'];
 
-    $validator = validator($data);
+    $validator = new Validator($urlData);
+    $validator->rule('required', 'name')->message("URL не должен быть пустым");
+    $validator->rule('url', 'name')->message("Некорректный URL");
+    $validator->rule('lengthMax', 'name', 255)->message("URL не должен превышать 255 символов");
 
     if (!$validator->validate()) {
         $error = $validator->errors();

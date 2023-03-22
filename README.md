@@ -3,8 +3,6 @@
 [![PHP CI](https://github.com/GulshatNigma/php-project-9/actions/workflows/PHP.yml/badge.svg)](https://github.com/GulshatNigma/php-project-9/actions/workflows/PHP.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/221babf6fde3c48a28fc/maintainability)](https://codeclimate.com/github/GulshatNigma/php-project-9/maintainability)
 
-Ссылка на домен: https://php-project-9-production-29fd.up.railway.app
-
-
 ## Анализатор страниц
 «Анализатор страниц» — сайт, который анализирует указанные страницы на SEO пригодность.
+Ссылка на сайт: https://php-project-9-production-29fd.up.railway.app

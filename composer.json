@@ -3,7 +3,7 @@
     "description": "php-project-9",
     "license": "MIT",
     "autoload": {
-        "files": ["Database/Connection.php"],
+        "files": ["database/Connection.php"],
         "psr-4": {
             "Hexlet\\Code\\": "public/"
         }
