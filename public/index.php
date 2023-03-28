@@ -107,7 +107,7 @@ $app->get('/urls', function ($request, $response) {
         $pdo = Connection::get()->connect();
         $result = $pdo->query($sql);
         $dateOfCheck = $result->fetchAll(PDO::FETCH_ASSOC);
-        
+
         if (!empty($dateOfCheck)) {
             $lastChecks[$id] = end($dateOfCheck)['created_at'];
             $lastStatusCode[$id] = end($dateOfCheck)['status_code'];
