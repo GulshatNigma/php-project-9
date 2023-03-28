@@ -1,7 +1,7 @@
 CREATE TABLE urls (
     id integer UNIQUE PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name varchar(255) NOT NULL,
-    created_at timestamp,
+    created_at timestamp
 );
 
 CREATE TABLE url_checks (
