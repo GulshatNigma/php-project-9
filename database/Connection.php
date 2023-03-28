@@ -20,15 +20,12 @@ final class Connection
      */
     public function connect()
     {
-        if (getenv('DATABASE_URL')) {
-            $databaseUrl = parse_url(getenv('DATABASE_URL'));
-        }
-
-        if (isset($databaseUrl['port'])) {
+        $databaseUrl = parse_url(getenv('DATABASE_URL'));
+        if (isset($databaseUrl['host'])) {
             $params['user'] = $databaseUrl['user'] ?? null;
             $params['password'] = $databaseUrl['pass'] ?? null;
-            $params['host'] = $databaseUrl['host'] ?? null;
-            $params['port'] = $databaseUrl['port'];
+            $params['host'] = $databaseUrl['host'];
+            $params['port'] = $databaseUrl['port'] ?? null;
             $params['database'] = isset($databaseUrl['path']) ? ltrim($databaseUrl['path'], '/') : null;
         } else {
             $params = parse_ini_file('database.ini');
