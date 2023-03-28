@@ -42,8 +42,8 @@
                             <tr>
                                 <td><?= $url['id']?></th>
                                 <td><a href="/urls/<?= $url['id']?>"><?= $url['name']?></a></th>
-                                <td><?= $lastChecks[$url['id']]?></th>
-                                <td><?= $statusCode[$url['id']]?></th>
+                                <td><?= $lastChecks[$url['id']] ?? null ?></th>
+                                <td><?= $statusCode[$url['id']] ?? null ?></th>
                             </tr>
                         <?php endforeach ?>
                     </tbody>
