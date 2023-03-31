@@ -47,7 +47,6 @@ $app->post('/urls', function ($request, $response) use ($router) {
     if (!$validator->validate()) {
         $error = $validator->errors();
         $params = [
-            'url' => $urlName,
             'errors' => $validator->errors()
         ];
         return $this->get('renderer')->render($response->withStatus(422), 'main.phtml', $params);
