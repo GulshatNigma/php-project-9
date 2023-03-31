@@ -40,7 +40,9 @@ $app->get('/', function ($request, $response) {
 
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
-    $urlName = $urlData['name'];
+    $parseUrl = parse_url($urlData['name']);
+    $urlName = !empty($parseUrl['scheme']) ? $parseUrl['scheme'] . "://" : "";
+    $urlName .= $parseUrl['host'];
 
     $validator = new Validator($urlData);
     $validator->rule('required', 'name')->message("URL не должен быть пустым");
@@ -68,9 +70,10 @@ $app->post('/urls', function ($request, $response) use ($router) {
     }
 
     if (in_array($urlName, Arr::flatten($row))) {
-        $sql = "SELECT id FROM urls WHERE name='$urlName'";
-        $result = $pdo->query($sql);
-        $row = $result->fetch();
+        $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
+        $sth->execute(['urlName'=> $urlName]);
+        $row = $sth->fetch();
+
         $id = $row['id'];
         $this->get('flash')->addMessage('success', "Страница уже существует");
         return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
@@ -78,8 +81,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     $result = $pdo->query($sql);
 
-    $sql = "INSERT INTO urls (name, created_at) VALUES(:name, :created_at)";
-    $sth = $pdo->prepare($sql);
+    $sth = $pdo->prepare("INSERT INTO urls (name, created_at) VALUES(:name, :created_at)");
     $sth->execute(['name' => $urlName, 'created_at' => $createdAt]);
     $params = [
         'url' => $urlName,
@@ -87,9 +89,9 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $this->get('flash')->addMessage('success', "Страница успешно добавлена");
 
     $pdo = Connection::get()->connect();
-    $sql = "SELECT id FROM urls WHERE name='$urlName'";
-    $result = $pdo->query($sql);
-    $row = $result->fetch(PDO::FETCH_ASSOC);
+    $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
+    $sth->execute(['urlName' => $urlName]);
+    $row = $sth->fetch(PDO::FETCH_ASSOC);
     $id = $row['id'];
     return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
 });
@@ -103,10 +105,10 @@ $app->get('/urls', function ($request, $response) {
     $lastChecks = [];
     foreach ($urls as $url) {
         $id = $url['id'];
-        $sql = "SELECT created_at, status_code FROM url_checks WHERE url_id = $id";
+        $sth = $pdo->prepare("SELECT created_at, status_code FROM url_checks WHERE url_id = :id");
+        $sth->execute(['id' => $id]);
         $pdo = Connection::get()->connect();
-        $result = $pdo->query($sql);
-        $dateOfCheck = $result->fetchAll(PDO::FETCH_ASSOC);
+        $dateOfCheck = $sth->fetchAll(PDO::FETCH_ASSOC);
 
         if (!empty($dateOfCheck)) {
             $lastChecks[$id] = end($dateOfCheck)['created_at'];
@@ -126,14 +128,16 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $pdo = Connection::get()->connect();
     $id = $args['id'];
     $flash = $this->get('flash')->getMessages();
-    $sql = "SELECT name, created_at FROM urls WHERE id='$id'";
-    $result = $pdo->query($sql);
-    $row = $result->fetch(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT name, created_at FROM urls WHERE id=:id");
+    $sql->execute(['id' => $id]);
+    $row = $sql->fetch(PDO::FETCH_ASSOC);
 
     $pdo = Connection::get()->connect();
-    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = $id";
-    $result = $pdo->query($sql);
-    $urlChecks = $result->fetchAll(PDO::FETCH_ASSOC);
+    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id";
+    $sth = $pdo->prepare($sql);
+    $sth->execute(['id' => $id]);
+    $urlChecks = $sth->fetchAll(PDO::FETCH_ASSOC);
 
     $params = ['flash' => $flash,
                 'id' => $id, 'name' => $row['name'], 'created_at' => $row['created_at'],
@@ -145,9 +149,9 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $pdo = Connection::get()->connect();
     $id = $args['url_id'];
 
-    $sql = "SELECT name FROM urls WHERE id='$id'";
-    $result = $pdo->query($sql);
-    $row = $result->fetch(PDO::FETCH_ASSOC);
+    $sth = $pdo->prepare("SELECT name FROM urls WHERE id=:id");
+    $sth->execute(['id' => $id]);
+    $row = $sth->fetch(PDO::FETCH_ASSOC);
     $name = $row['name'];
 
     $carbon = new Carbon();

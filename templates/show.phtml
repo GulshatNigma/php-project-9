@@ -40,27 +40,28 @@
     <main class="flex-grow-1">
         <div class="container-lg mt-3">
             <h1>Сайт: <?= $name?></h1>
+            <div class="table-responsive">
                 <table class="table table-bordered table-hover text-nowrap" data-test="url">
-                <tbody>
-                    <tr>
-                    <td>ID</td>
-                    <td><?= $id?></td>
-                    </tr>
-                    <tr>
-                    <td>Имя</td>
-                    <td><?= $name?></td>
-                    </tr>
-                    <tr>
-                    <td>Дата создания</td>
-                    <td><?= $created_at?></td>
-                    </tr>
-                </tbody>
+                    <tbody>
+                        <tr>
+                        <td>ID</td>
+                        <td><?= $id?></td>
+                        </tr>
+                        <tr>
+                        <td>Имя</td>
+                        <td><?= $name?></td>
+                        </tr>
+                        <tr>
+                        <td>Дата создания</td>
+                        <td><?= $created_at?></td>
+                        </tr>
+                    </tbody>
                 </table>
+            </div>
             <h2 class="mt-5 mb-3">Проверки</h2>
-                <form method="post" action="/urls/<?= $id?>/checks">
-                    <input type="submit" class="btn btn-primary" value="Запустить проверку">
-                </form>
-
+            <form method="post" action="/urls/<?= $id?>/checks" class="mb-3">
+                <input type="submit" class="btn btn-primary" value="Запустить проверку">
+            </form>
             <table class="table table-bordered table-hover" data-test="checks">
                 <tbody>
                     <tr>
@@ -74,12 +75,12 @@
                     <?php if (isset($urlChecks)): ?>
                             <?php foreach ($urlChecks as $urlCheck) : ?>
                                 <tr>
-                                    <td><?= $urlCheck['id'] ?></th>
-                                    <td><?= $urlCheck['status_code'] ?></th>
-                                    <td><?= $urlCheck['h1'] ?></th>
-                                    <td><?= $urlCheck['title'] ?></th>
-                                    <td><?= $urlCheck['description'] ?></th>
-                                    <td><?= $urlCheck['created_at'] ?></th>
+                                    <td><?= $urlCheck['id'] ?></td>
+                                    <td><?= $urlCheck['status_code'] ?></td>
+                                    <td><?= $urlCheck['h1'] ?></td>
+                                    <td><?= $urlCheck['title'] ?></td>
+                                    <td><?= $urlCheck['description'] ?></td>
+                                    <td><?= $urlCheck['created_at'] ?></td>
                                 </tr>
                             <?php endforeach ?>
                         <?php endif ?>
