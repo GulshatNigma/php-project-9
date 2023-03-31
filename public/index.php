@@ -42,9 +42,6 @@ $app->get('/', function ($request, $response) {
 
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
-    $parseUrl = parse_url($urlData['name']);
-    $urlName = !empty($parseUrl['scheme']) ? $parseUrl['scheme'] . "://" : "";
-    $urlName .= $parseUrl['host'];
 
     $validator = validateData($urlData);
     if (!$validator->validate()) {
@@ -55,6 +52,10 @@ $app->post('/urls', function ($request, $response) use ($router) {
         ];
         return $this->get('renderer')->render($response->withStatus(422), 'main.phtml', $params);
     }
+
+    $parseUrl = parse_url($urlData['name']);
+    $urlName = !empty($parseUrl['scheme']) ? $parseUrl['scheme'] . "://" : "";
+    $urlName .= $parseUrl['host'];
 
     $carbon = new Carbon();
     $createdAt = $carbon->now();

@@ -4,7 +4,7 @@ namespace Page\Analyser\Validator;
 
 use Valitron\Validator;
 
-function validate($data)
+function validate(array $data)
 {
     $validator = new Validator($data);
     $validator->rule('required', 'name')->message("URL не должен быть пустым");
