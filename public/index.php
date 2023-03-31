@@ -13,6 +13,8 @@ use GuzzleHttp\Client;
 use DiDom\Document;
 use Page\Analyser\Connection;
 
+use function Page\Analyser\Validator\validate as validateData;
+
 session_start();
 
 $container = new Container();
@@ -44,11 +46,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $urlName = !empty($parseUrl['scheme']) ? $parseUrl['scheme'] . "://" : "";
     $urlName .= $parseUrl['host'];
 
-    $validator = new Validator($urlData);
-    $validator->rule('required', 'name')->message("URL не должен быть пустым");
-    $validator->rule('url', 'name')->message("Некорректный URL");
-    $validator->rule('lengthMax', 'name', 255)->message("URL не должен превышать 255 символов");
-
+    $validator = validateData($urlData);
     if (!$validator->validate()) {
         $error = $validator->errors();
         $params = [
@@ -71,12 +69,12 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     if (in_array($urlName, Arr::flatten($row))) {
         $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
-        $sth->execute(['urlName'=> $urlName]);
+        $sth->execute(['urlName' => $urlName]);
         $row = $sth->fetch();
 
         $id = $row['id'];
         $this->get('flash')->addMessage('success', "Страница уже существует");
-        return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
+        return $response->withRedirect($router->urlFor('url', ['id' => $id]));
     }
 
     $result = $pdo->query($sql);
@@ -93,8 +91,8 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $sth->execute(['urlName' => $urlName]);
     $row = $sth->fetch(PDO::FETCH_ASSOC);
     $id = $row['id'];
-    return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
-});
+    return $response->withRedirect($router->urlFor('url', ['id' => $id]));
+})->setName('urls.post');
 
 $app->get('/urls', function ($request, $response) {
     $sql = "SELECT * FROM urls";
@@ -122,7 +120,7 @@ $app->get('/urls', function ($request, $response) {
         'statusCode' => $lastStatusCode ?? null,
     ];
     return $this->get('renderer')->render($response, 'sites.phtml', $params);
-});
+})->setName('urls.get');
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
     $pdo = Connection::get()->connect();
@@ -143,7 +141,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
                 'id' => $id, 'name' => $row['name'], 'created_at' => $row['created_at'],
                  'urlChecks' => array_reverse($urlChecks)];
     return $this->get('renderer')->render($response, 'show.phtml', $params);
-})->setName('get user');
+})->setName('url');
 
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
     $pdo = Connection::get()->connect();
@@ -163,7 +161,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $res = $client->request('GET', $name);
     } catch (Exception) {
         $this->get('flash')->addMessage('danger', "Произошла ошибка при проверке, не удалось подключиться");
-        return $response->withStatus(404)->withRedirect($router->urlFor('get user', ['id' => $id]));
+        return $response->withStatus(404)->withRedirect($router->urlFor('url', ['id' => $id]));
     }
 
     $statusCode = $res->getStatusCode();
@@ -187,7 +185,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $sth->execute(['url_id' => $id, 'created_at' => $createdAt,
                     'status_code' => $statusCode, 'h1' => $h1,
                     'title' => $title, 'description' => $description]);
-    return $response->withRedirect($router->urlFor('get user', ['id' => $id]));
-});
+    return $response->withRedirect($router->urlFor('url', ['id' => $id]));
+})->setName('urls.checks');
 
 $app->run();
