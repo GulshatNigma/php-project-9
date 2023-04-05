@@ -3,7 +3,7 @@
     "description": "php-project-9",
     "license": "MIT",
     "autoload": {
-        "files": ["database/Connection.php", "src/Validator.php"],
+        "files": ["database/Connection.php"],
         "psr-4": {
             "Hexlet\\Code\\": "public/"
         }
@@ -15,7 +15,8 @@
         }
     ],
     "require-dev": {
-        "squizlabs/php_codesniffer": "*"
+        "squizlabs/php_codesniffer": "*",
+        "phpstan/phpstan": "^1.10"
     },
     "require": {
         "nesbot/carbon": "^2.66",

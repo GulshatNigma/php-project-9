@@ -26,14 +26,17 @@
             </div>
         </nav>
     </header>
-
     <?php if (isset($flash)) : ?>
         <?php foreach ($flash as $messages) : ?>
-            <div class="alert alert-success" role="alert">
-            <?php foreach ($messages as $message) : ?>
-                <?= $message ?>
+            <?php foreach (['success', 'warning', 'danger'] as $key) : ?>
+                <?php if (array_key_exists($key, $flash)) : ?>
+                    <div class="alert alert-<?= $key ?>" role="alert">
+                        <?php foreach ($messages as $message) : ?>
+                            <?= $message ?>
+                        <?php endforeach ?>
+                    </div>
+                <?php endif ?>
             <?php endforeach ?>
-            </div>
         <?php endforeach ?>
     <?php endif ?>
 

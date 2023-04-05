@@ -13,8 +13,6 @@ use GuzzleHttp\Client;
 use DiDom\Document;
 use Page\Analyser\Connection;
 
-use function Page\Analyser\Validator\validate as validateData;
-
 session_start();
 
 $container = new Container();
@@ -43,9 +41,12 @@ $app->get('/', function ($request, $response) {
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
 
-    $validator = validateData($urlData);
+    $validator = new Validator($urlData);
+    $validator->rule('required', 'name')->message("URL не должен быть пустым");
+    $validator->rule('urlActive', 'name')->message("Некорректный URL");
+    $validator->rule('lengthMax', 'name', 255)->message("URL не должен превышать 255 символов");
+
     if (!$validator->validate()) {
-        $error = $validator->errors();
         $params = [
             'errors' => $validator->errors()
         ];
@@ -53,19 +54,14 @@ $app->post('/urls', function ($request, $response) use ($router) {
     }
 
     $parseUrl = parse_url($urlData['name']);
-    $urlName = !empty($parseUrl['scheme']) ? $parseUrl['scheme'] . "://" : "";
+    $urlName = $parseUrl['scheme'] . "://";
     $urlName .= $parseUrl['host'];
 
-    $carbon = new Carbon();
-    $createdAt = $carbon->now();
     $pdo = Connection::get()->connect();
 
     $sql = "SELECT * FROM urls";
     $data = $pdo->query($sql);
     $row = $data->fetchAll(PDO::FETCH_ASSOC);
-    if ($row === false) {
-        $row = [];
-    }
 
     if (in_array($urlName, Arr::flatten($row))) {
         $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
@@ -77,7 +73,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         return $response->withRedirect($router->urlFor('url', ['id' => $id]));
     }
 
-    $result = $pdo->query($sql);
+    $createdAt = Carbon::now();
 
     $sth = $pdo->prepare("INSERT INTO urls (name, created_at) VALUES(:name, :created_at)");
     $sth->execute(['name' => $urlName, 'created_at' => $createdAt]);
@@ -105,7 +101,6 @@ $app->get('/urls', function ($request, $response) {
         $id = $url['id'];
         $sth = $pdo->prepare("SELECT created_at, status_code FROM url_checks WHERE url_id = :id");
         $sth->execute(['id' => $id]);
-        $pdo = Connection::get()->connect();
         $dateOfCheck = $sth->fetchAll(PDO::FETCH_ASSOC);
 
         if (!empty($dateOfCheck)) {
@@ -131,7 +126,6 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $sql->execute(['id' => $id]);
     $row = $sql->fetch(PDO::FETCH_ASSOC);
 
-    $pdo = Connection::get()->connect();
     $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id";
     $sth = $pdo->prepare($sql);
     $sth->execute(['id' => $id]);
@@ -152,8 +146,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $row = $sth->fetch(PDO::FETCH_ASSOC);
     $name = $row['name'];
 
-    $carbon = new Carbon();
-    $createdAt = $carbon->now();
 
     $client = new Client(['base_url' => '$name']);
 
@@ -164,7 +156,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         return $response->withStatus(404)->withRedirect($router->urlFor('url', ['id' => $id]));
     }
 
-    $statusCode = $res->getStatusCode();
     $this->get('flash')->addMessage('success', "Страница успешно проверена");
 
     $body = (string) ($res->getBody());
@@ -178,6 +169,9 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
     $descriptionArray = $document->find('meta[name=description]');
     $description = !empty($descriptionArray) ? optional($descriptionArray[0])->content : null;
+
+    $createdAt = Carbon::now();
+    $statusCode = $res->getStatusCode();
 
     $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description)
             VALUES(:url_id, :created_at, :status_code, :h1, :title, :description)";
