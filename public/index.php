@@ -146,7 +146,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $row = $sth->fetch(PDO::FETCH_ASSOC);
     $name = $row['name'];
 
-
     $client = new Client(['base_url' => '$name']);
 
     try {
