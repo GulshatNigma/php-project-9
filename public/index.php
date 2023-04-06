@@ -3,7 +3,6 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
-use Slim\Views\PhpRenderer;
 use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use Carbon\Carbon;
