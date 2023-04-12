@@ -68,7 +68,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         $this->get('flash')->addMessage('success', "Страница уже существует");
         return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
-    
+
     $createdAt = Carbon::now();
 
     $sth = $pdo->prepare("INSERT INTO urls (name, created_at) VALUES(:name, :created_at)");
@@ -156,14 +156,14 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $body = (string) ($res->getBody());
     $document = new Document($body);
 
-    $h1Array = $document->find('h1');
-    $h1 = optional($h1Array[0])->text();
+    $h1Array = $document->first('h1');
+    $h1 = optional($h1Array)->text();
 
-    $titleArray = $document->find('title');
-    $title = optional($titleArray[0])->text();
+    $titleArray = $document->first('title');
+    $title = optional($titleArray)->text();
 
-    $descriptionArray = $document->find('meta[name=description]');
-    $description = optional($descriptionArray[0])->content;
+    $descriptionArray = $document->first('meta[name=description]');
+    $description = optional($descriptionArray)->content;
 
     $createdAt = Carbon::now();
     $statusCode = $res->getStatusCode();
