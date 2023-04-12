@@ -36,7 +36,7 @@
                 <form action="/urls" method="post" class="row mb-3" required="">
                     <div class="col-8">
                             <?php if (isset($errors['name'][0])): ?>
-                                <input class="form-control form-control-lg is-invalid" type="text" placeholder="https://www.example.com" name=url[name]>
+                                <input class="form-control form-control-lg is-invalid" type="text" placeholder="https://www.example.com" value=<?= $url['name']?>>
                                 <div class="invalid-feedback d-block">
                                 <?= $errors['name'][0]?>
                                 </div>

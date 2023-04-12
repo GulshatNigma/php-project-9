@@ -3,9 +3,8 @@
     "description": "php-project-9",
     "license": "MIT",
     "autoload": {
-        "files": ["database/Connection.php"],
         "psr-4": {
-            "Hexlet\\Code\\": "public/"
+            "PageAnalyser\\": "database/"
         }
     },
     "authors": [
@@ -20,8 +19,7 @@
     },
     "require": {
         "nesbot/carbon": "^2.66",
-        "illuminate/support": "^10.1",
-        "vlucas/phpdotenv": "^5.5",
+        "illuminate/support": "^10.7",
         "guzzlehttp/guzzle": "^7.0",
         "imangazaliev/didom": "^2.0",
         "php-di/php-di": "^7.0",

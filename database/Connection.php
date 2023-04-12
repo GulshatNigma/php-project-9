@@ -1,6 +1,6 @@
 <?php
 
-namespace Page\Analyser;
+namespace PageAnalyser;
 
 /**
  * Создание класса Connection

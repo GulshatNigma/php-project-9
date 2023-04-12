@@ -7,10 +7,10 @@ use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use Carbon\Carbon;
 use Valitron\Validator;
-use Illuminate\Support\Arr;
 use GuzzleHttp\Client;
 use DiDom\Document;
-use Page\Analyser\Connection;
+use PageAnalyser\Connection;
+use illuminate\support;
 
 session_start();
 
@@ -35,7 +35,7 @@ $router = $app->getRouteCollector()->getRouteParser();
 $app->get('/', function ($request, $response) {
     $params = ['url' => []];
     return $this->get("renderer")->render($response, 'main.phtml', $params);
-})->setName('main');
+});
 
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlData = $request->getParsedBodyParam('url');
@@ -47,6 +47,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     if (!$validator->validate()) {
         $params = [
+            'url' => $urlData,
             'errors' => $validator->errors()
         ];
         return $this->get('renderer')->render($response->withStatus(422), 'main.phtml', $params);
@@ -58,20 +59,16 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     $pdo = Connection::get()->connect();
 
-    $sql = "SELECT * FROM urls";
-    $data = $pdo->query($sql);
-    $row = $data->fetchAll(PDO::FETCH_ASSOC);
+    $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
+    $sth->execute(['urlName' => $urlName]);
+    $row = $sth->fetch();
 
-    if (in_array($urlName, Arr::flatten($row))) {
-        $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
-        $sth->execute(['urlName' => $urlName]);
-        $row = $sth->fetch();
-
+    if ($row) {
         $id = $row['id'];
         $this->get('flash')->addMessage('success', "Страница уже существует");
-        return $response->withRedirect($router->urlFor('url', ['id' => $id]));
+        return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
-
+    
     $createdAt = Carbon::now();
 
     $sth = $pdo->prepare("INSERT INTO urls (name, created_at) VALUES(:name, :created_at)");
@@ -86,8 +83,8 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $sth->execute(['urlName' => $urlName]);
     $row = $sth->fetch(PDO::FETCH_ASSOC);
     $id = $row['id'];
-    return $response->withRedirect($router->urlFor('url', ['id' => $id]));
-})->setName('urls.post');
+    return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
+})->setName('urls.store');
 
 $app->get('/urls', function ($request, $response) {
     $sql = "SELECT * FROM urls";
@@ -114,7 +111,7 @@ $app->get('/urls', function ($request, $response) {
         'statusCode' => $lastStatusCode ?? null,
     ];
     return $this->get('renderer')->render($response, 'sites.phtml', $params);
-})->setName('urls.get');
+})->setName('urls.index');
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
     $pdo = Connection::get()->connect();
@@ -134,7 +131,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
                 'id' => $id, 'name' => $row['name'], 'created_at' => $row['created_at'],
                  'urlChecks' => array_reverse($urlChecks)];
     return $this->get('renderer')->render($response, 'show.phtml', $params);
-})->setName('url');
+})->setName('urls.show');
 
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
     $pdo = Connection::get()->connect();
@@ -151,7 +148,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $res = $client->request('GET', $name);
     } catch (Exception) {
         $this->get('flash')->addMessage('danger', "Произошла ошибка при проверке, не удалось подключиться");
-        return $response->withStatus(404)->withRedirect($router->urlFor('url', ['id' => $id]));
+        return $response->withStatus(404)->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
 
     $this->get('flash')->addMessage('success', "Страница успешно проверена");
@@ -160,13 +157,13 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $document = new Document($body);
 
     $h1Array = $document->find('h1');
-    $h1 = !empty($h1Array) ? optional($h1Array[0])->text() : null;
+    $h1 = optional($h1Array[0])->text();
 
     $titleArray = $document->find('title');
-    $title = !empty($titleArray) ? optional($titleArray[0])->text() : null;
+    $title = optional($titleArray[0])->text();
 
     $descriptionArray = $document->find('meta[name=description]');
-    $description = !empty($descriptionArray) ? optional($descriptionArray[0])->content : null;
+    $description = optional($descriptionArray[0])->content;
 
     $createdAt = Carbon::now();
     $statusCode = $res->getStatusCode();
@@ -177,7 +174,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $sth->execute(['url_id' => $id, 'created_at' => $createdAt,
                     'status_code' => $statusCode, 'h1' => $h1,
                     'title' => $title, 'description' => $description]);
-    return $response->withRedirect($router->urlFor('url', ['id' => $id]));
-})->setName('urls.checks');
+    return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
+})->setName('urls.checks.store');
 
 $app->run();
