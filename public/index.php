@@ -88,7 +88,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
 $app->get('/urls', function ($request, $response) {
     $sql = "SELECT * FROM urls";
-    $pdo = Connection::get()->connect();
+    $pdo = Connection::connect();
     $sql = $pdo->query($sql);
     $urls = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -114,7 +114,7 @@ $app->get('/urls', function ($request, $response) {
 })->setName('urls.index');
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
-    $pdo = Connection::get()->connect();
+    $pdo = Connection::connect();
     $urlId = $args['id'];
     $flash = $this->get('flash')->getMessages();
 
@@ -134,7 +134,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 })->setName('urls.show');
 
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
-    $pdo = Connection::get()->connect();
+    $pdo = Connection::connect();
     $urlId = $args['url_id'];
 
     $sth = $pdo->prepare("SELECT name FROM urls WHERE id=:id");
