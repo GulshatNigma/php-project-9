@@ -57,7 +57,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $urlName = $parsedUrl['scheme'] . "://";
     $urlName .= $parsedUrl['host'];
 
-    $pdo = Connection::get()->connect();
+    $pdo = Connection::connect();
 
     $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
     $sth->execute(['urlName' => $urlName]);
@@ -78,7 +78,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     ];
     $this->get('flash')->addMessage('success', "Страница успешно добавлена");
 
-    $pdo = Connection::get()->connect();
+    $pdo = Connection::connect();
     $sth = $pdo->prepare("SELECT id FROM urls WHERE name=:urlName");
     $sth->execute(['urlName' => $urlName]);
     $row = $sth->fetch(PDO::FETCH_ASSOC);
