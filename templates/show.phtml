@@ -41,55 +41,69 @@
     <?php endif ?>
 
     <main class="flex-grow-1">
-        <div class="container-lg mt-3">
-            <h1>Сайт: <?= $name?></h1>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover text-nowrap" data-test="url">
+        <?php if (isset($errors)): ?>
+            <div class="col">
+                <h1>Страница не найдена!</h1>
+                <img src="./img/404.svg" class="rounded float-left" alt="404 error">
+                <h2 class="h2 mb-4">Ошибка 404</h2>
+                <p class="fs-5 text-black mb-3">Что случилось?</p>
+                <p class="mb-4">Вы попали на страницу, которой не существует</p>
+                <p class="fs-5 text-black mb-3">Почему это произошло?</p>
+                <p class="mb-4">В большинстве ситуаций ошибка 404 отображается, если связь с сервером установлена, но информации по заданному запросу нет. Возможно, в адресе опечатка — такое случается при ручном наборе. Или страница была удалена, но сохранилась в закладках вашего браузера</p>
+                <p class="fs-5 text-black mb-3">Что делать?</p>
+                <p class="mb-2">Поскольку мы не знаем, как и откуда вы попали на эту страницу, то рекомендуем начать <a href="/">с главной</a></p>
+            </div>
+        <?php else: ?>
+            <div class="container-lg mt-3">
+                <h1>Сайт: <?= $name?></h1>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover text-nowrap" data-test="url">
+                        <tbody>
+                            <tr>
+                            <td>ID</td>
+                            <td><?= $id?></td>
+                            </tr>
+                            <tr>
+                            <td>Имя</td>
+                            <td><?= $name?></td>
+                            </tr>
+                            <tr>
+                            <td>Дата создания</td>
+                            <td><?= $created_at?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h2 class="mt-5 mb-3">Проверки</h2>
+                <form method="post" action="/urls/<?= $id?>/checks" class="mb-3">
+                    <input type="submit" class="btn btn-primary" value="Запустить проверку">
+                </form>
+                <table class="table table-bordered table-hover" data-test="checks">
                     <tbody>
                         <tr>
-                        <td>ID</td>
-                        <td><?= $id?></td>
+                            <th>ID</th>
+                            <th>Код ответа</th>
+                            <th>h1</th>
+                            <th>title</th>
+                            <th>description</th>
+                            <th>Дата создания</th>
                         </tr>
-                        <tr>
-                        <td>Имя</td>
-                        <td><?= $name?></td>
-                        </tr>
-                        <tr>
-                        <td>Дата создания</td>
-                        <td><?= $created_at?></td>
-                        </tr>
+                        <?php if (isset($urlChecks)): ?>
+                                <?php foreach ($urlChecks as $urlCheck) : ?>
+                                    <tr>
+                                        <td><?= $urlCheck['id'] ?></td>
+                                        <td><?= $urlCheck['status_code'] ?></td>
+                                        <td><?= $urlCheck['h1'] ?></td>
+                                        <td><?= $urlCheck['title'] ?></td>
+                                        <td><?= $urlCheck['description'] ?></td>
+                                        <td><?= $urlCheck['created_at'] ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            <?php endif ?>
                     </tbody>
                 </table>
             </div>
-            <h2 class="mt-5 mb-3">Проверки</h2>
-            <form method="post" action="/urls/<?= $id?>/checks" class="mb-3">
-                <input type="submit" class="btn btn-primary" value="Запустить проверку">
-            </form>
-            <table class="table table-bordered table-hover" data-test="checks">
-                <tbody>
-                    <tr>
-                        <th>ID</th>
-                        <th>Код ответа</th>
-                        <th>h1</th>
-                        <th>title</th>
-                        <th>description</th>
-                        <th>Дата создания</th>
-                    </tr>
-                    <?php if (isset($urlChecks)): ?>
-                            <?php foreach ($urlChecks as $urlCheck) : ?>
-                                <tr>
-                                    <td><?= $urlCheck['id'] ?></td>
-                                    <td><?= $urlCheck['status_code'] ?></td>
-                                    <td><?= $urlCheck['h1'] ?></td>
-                                    <td><?= $urlCheck['title'] ?></td>
-                                    <td><?= $urlCheck['description'] ?></td>
-                                    <td><?= $urlCheck['created_at'] ?></td>
-                                </tr>
-                            <?php endforeach ?>
-                        <?php endif ?>
-                </tbody>
-            </table>
-        </div>
+        <?php endif ?>
     </main>
     <footer class="border-top">
         <p class="text-center">

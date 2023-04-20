@@ -14,11 +14,15 @@ class Connection
             $databaseUrl = parse_url(getenv('DATABASE_URL'));
         }
 
-        $params['user'] = $databaseUrl['user'] ?? null;
-        $params['password'] = $databaseUrl['pass'] ?? null;
-        $params['host'] = $databaseUrl['host'] ?? null;
-        $params['port'] = $databaseUrl['port'] ?? null;
-        $params['database'] = isset($databaseUrl['path']) ? ltrim($databaseUrl['path'], '/') : null;
+        if (isset($databaseUrl['host'])) {
+            $params['user'] = $databaseUrl['user'] ?? null;
+            $params['password'] = $databaseUrl['pass'] ?? null;
+            $params['host'] = $databaseUrl['host'];
+            $params['port'] = $databaseUrl['port'] ?? null;
+            $params['database'] = isset($databaseUrl['path']) ? ltrim($databaseUrl['path'], '/') : null;
+        } else {
+            $params = parse_ini_file('database.ini');
+        }
 
         if ($params === false) {
             throw new \Exception("Error reading database configuration file");
