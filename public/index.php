@@ -11,7 +11,6 @@ use GuzzleHttp\Client;
 use DiDom\Document;
 use PageAnalyser\Connection;
 use Illuminate\Support;
-use Exception;
 
 session_start();
 
@@ -32,8 +31,16 @@ $container->set('connection', function () {
 
 AppFactory::setContainer($container);
 $app = AppFactory::create();
-$app->addErrorMiddleware(true, true, true);
+$responseFactory = $app->getResponseFactory();
 $app->add(MethodOverrideMiddleware::class);
+
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$customErrorHandler = function () use ($responseFactory) {
+    $response = $responseFactory->createResponse();
+    return $this->get('renderer')->render($response, "error.phtml");
+};
+$errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 $router = $app->getRouteCollector()->getRouteParser();
 
@@ -80,22 +87,22 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     $sth = $this->get('connection')->prepare("SELECT id FROM urls WHERE name=:urlName");
     $sth->execute(['urlName' => $urlName]);
-    $row = $sth->fetch(PDO::FETCH_ASSOC);
-    $urlId = $row['id'];
+    $urlId = $this->get('connection')->lastInsertId();
+
     return $response->withRedirect($router->urlFor('urls.show', ['id' => $urlId]));
 })->setName('urls.store');
 
 $app->get('/urls', function ($request, $response) {
     $sql = "SELECT * FROM urls";
     $sql = $this->get('connection')->query($sql);
-    $urls = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $urls = $sql->fetchAll();
 
     $lastChecks = [];
     foreach ($urls as $url) {
         $urlId = $url['id'];
         $sth = $this->get('connection')->prepare("SELECT created_at, status_code FROM url_checks WHERE url_id = :id");
         $sth->execute(['id' => $urlId]);
-        $dateOfCheck = $sth->fetchAll(PDO::FETCH_ASSOC);
+        $dateOfCheck = $sth->fetchAll();
 
         if (!empty($dateOfCheck)) {
             $lastChecks[$urlId] = end($dateOfCheck)['created_at'];
@@ -117,19 +124,12 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 
     $sql = $this->get('connection')->prepare("SELECT name, created_at FROM urls WHERE id=:id");
     $sql->execute(['id' => $urlId]);
-    $row = $sql->fetch(PDO::FETCH_ASSOC);
-
-    if (!$row) {
-        $params = [
-            'errors' => 'Страница не найдена'
-        ];
-        return $this->get('renderer')->render($response->withStatus(404), 'show.phtml', $params);
-    }
+    $row = $sql->fetch();
 
     $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id";
     $sth = $this->get('connection')->prepare($sql);
     $sth->execute(['id' => $urlId]);
-    $urlChecks = $sth->fetchAll(PDO::FETCH_ASSOC);
+    $urlChecks = $sth->fetchAll();
 
     $params = ['flash' => $flash,
                 'id' => $urlId, 'name' => $row['name'], 'created_at' => $row['created_at'],
@@ -142,7 +142,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
     $sth = $this->get('connection')->prepare("SELECT name FROM urls WHERE id=:id");
     $sth->execute(['id' => $urlId]);
-    $row = $sth->fetch(PDO::FETCH_ASSOC);
+    $row = $sth->fetch();
     $name = $row['name'];
 
     $client = new Client(['base_url' => '$name']);
