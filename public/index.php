@@ -33,7 +33,7 @@ AppFactory::setContainer($container);
 $app = AppFactory::create();
 $responseFactory = $app->getResponseFactory();
 $app->add(MethodOverrideMiddleware::class);
-/*
+
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 $customErrorHandler = function () use ($responseFactory) {
@@ -41,7 +41,7 @@ $customErrorHandler = function () use ($responseFactory) {
     return $this->get('renderer')->render($response, "error.phtml");
 };
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
-*/
+
 $router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) {
@@ -93,13 +93,14 @@ $app->post('/urls', function ($request, $response) use ($router) {
 })->setName('urls.store');
 
 $app->get('/urls', function ($request, $response) {
-    $sth = $this->get('connection')->prepare("SELECT urls.id, urls.name, MAX(url_checks.created_at), url_checks.status_code FROM url_checks
+    $sth = $this->get('connection')->prepare("SELECT urls.id, urls.name,
+                                            url_checks.status_code, MAX(url_checks.created_at) FROM url_checks
                                             LEFT JOIN urls ON url_checks.url_id = urls.id 
                                             GROUP BY urls.name, urls.id, url_checks.status_code, url_checks.url_id
                                             ORDER BY urls.id DESC;");
     $sth->execute();
     $urls = $sth->fetchAll();
-    
+
     $params = [
         'urls' => $urls
     ];
