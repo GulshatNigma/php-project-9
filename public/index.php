@@ -95,7 +95,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
 $app->get('/urls', function ($request, $response) {
     $sth = $this->get('connection')->prepare("SELECT urls.id, urls.name,
                                             url_checks.status_code, MAX(url_checks.created_at) FROM url_checks
-                                            LEFT JOIN urls ON url_checks.url_id = urls.id 
+                                            RIGHT JOIN urls ON url_checks.url_id = urls.id 
                                             GROUP BY urls.name, urls.id, url_checks.status_code, url_checks.url_id
                                             ORDER BY urls.id DESC;");
     $sth->execute();
