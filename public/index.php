@@ -25,19 +25,17 @@ $container->set('flash', function () {
 });
 
 $container->set('connection', function () {
-    $pdo = Connection::connect();
-    return $pdo;
+    return Connection::connect();
 });
 
 AppFactory::setContainer($container);
 $app = AppFactory::create();
-$responseFactory = $app->getResponseFactory();
 $app->add(MethodOverrideMiddleware::class);
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$customErrorHandler = function () use ($responseFactory) {
-    $response = $responseFactory->createResponse();
+$customErrorHandler = function () use ($app) {
+    $response = $app->getResponseFactory()->createResponse();
     return $this->get('renderer')->render($response, "error.phtml");
 };
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
@@ -85,8 +83,6 @@ $app->post('/urls', function ($request, $response) use ($router) {
     ];
     $this->get('flash')->addMessage('success', "Страница успешно добавлена");
 
-    $sth = $this->get('connection')->prepare("SELECT id FROM urls WHERE name=:urlName");
-    $sth->execute(['urlName' => $urlName]);
     $urlId = $this->get('connection')->lastInsertId();
 
     return $response->withRedirect($router->urlFor('urls.show', ['id' => $urlId]));
@@ -107,32 +103,32 @@ $app->get('/urls', function ($request, $response) {
     return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('urls.index');
 
-$app->get('/urls/{id}', function ($request, $response, $args) {
+$app->get('/urls/{id:[0-9]+}', function ($request, $response, $args) {
     $urlId = $args['id'];
     $flash = $this->get('flash')->getMessages();
 
-    $sql = $this->get('connection')->prepare("SELECT name, created_at FROM urls WHERE id=:id");
+    $sql = $this->get('connection')->prepare("SELECT id, name, created_at FROM urls WHERE id=:id");
     $sql->execute(['id' => $urlId]);
-    $row = $sql->fetch();
+    $url = $sql->fetch();
 
-    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id";
+    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id ORDER BY id DESC";
     $sth = $this->get('connection')->prepare($sql);
     $sth->execute(['id' => $urlId]);
     $urlChecks = $sth->fetchAll();
 
     $params = ['flash' => $flash,
-                'id' => $urlId, 'name' => $row['name'], 'created_at' => $row['created_at'],
-                'urlChecks' => array_reverse($urlChecks)];
+                'url' => $url,
+                'urlChecks' => $urlChecks];
     return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName('urls.show');
 
-$app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
+$app->post('/urls/{url_id:[0-9]+}/checks', function ($request, $response, $args) use ($router) {
     $urlId = $args['url_id'];
 
     $sth = $this->get('connection')->prepare("SELECT name FROM urls WHERE id=:id");
     $sth->execute(['id' => $urlId]);
     $row = $sth->fetch();
-    $name = $row['name'];
+    $name = $row['name'] ?? null;
 
     $client = new Client(['base_url' => '$name']);
 
