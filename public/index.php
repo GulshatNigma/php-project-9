@@ -11,6 +11,7 @@ use GuzzleHttp\Client;
 use DiDom\Document;
 use PageAnalyser\Connection;
 use Illuminate\Support;
+use Illuminate\Support\Collection;
 
 session_start();
 
@@ -31,7 +32,7 @@ $container->set('connection', function () {
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
-/*
+
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 $customErrorHandler = function () use ($app) {
@@ -39,7 +40,7 @@ $customErrorHandler = function () use ($app) {
     return $this->get('renderer')->render($response, "error.phtml");
 };
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
-*/
+
 $router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) {
@@ -98,9 +99,7 @@ $app->get('/urls', function ($request, $response) {
                                             ORDER BY url_id DESC");
     $sth->execute();
     $datesOfCheck = $sth->fetchAll();
-    if (!empty($datesOfCheck)) {
-        $datesOfCheck = collect($datesOfCheck)->keyBy('url_id')->toArray();
-    }
+    $datesOfCheck = collect($datesOfCheck)->keyBy('url_id')->toArray();
 
     $params = [
         'urls' => $urls,
