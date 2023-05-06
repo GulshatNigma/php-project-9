@@ -95,11 +95,10 @@ $app->get('/urls', function ($request, $response) {
     $urls = $sql->fetchAll();
 
     $sth = $this->get('connection')->prepare("SELECT url_id, created_at, status_code FROM url_checks 
-                                            GROUP BY status_code, url_id, created_at
+                                            GROUP BY url_id, status_code, created_at
                                             ORDER BY url_id DESC");
     $sth->execute();
-    $datesOfCheck = $sth->fetchAll();
-    $datesOfCheck = collect($datesOfCheck)->keyBy('url_id')->toArray();
+    $datesOfCheck = collect($sth->fetchAll())->keyBy('url_id')->toArray() ?? null;
 
     $params = [
         'urls' => $urls,
