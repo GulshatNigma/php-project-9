@@ -98,7 +98,9 @@ $app->get('/urls', function ($request, $response) {
                                             ORDER BY url_id DESC");
     $sth->execute();
     $datesOfCheck = $sth->fetchAll();
-    $datesOfCheck = collect($datesOfCheck)->keyBy('url_id')->toArray();
+    if (!empty($datesOfCheck)) {
+        $datesOfCheck = collect($datesOfCheck)->keyBy('url_id')->toArray();
+    }
 
     $params = [
         'urls' => $urls,
