@@ -98,10 +98,11 @@ $app->get('/urls', function ($request, $response) {
                                             ORDER BY url_id DESC");
     $sth->execute();
     $datesOfCheck = $sth->fetchAll();
+    $datesOfCheck = collect($datesOfCheck)->keyBy('url_id')->toArray();
 
     $params = [
         'urls' => $urls,
-        'datesOfCheck' => collect($datesOfCheck)->keyBy('url_id')->toArray()
+        'datesOfCheck' => $datesOfCheck
     ];
     return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('urls.index');
@@ -114,7 +115,8 @@ $app->get('/urls/{id:[0-9]+}', function ($request, $response, $args) {
     $sql->execute(['id' => $urlId]);
     $url = $sql->fetch();
 
-    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id ORDER BY id DESC";
+    $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id
+            ORDER BY id DESC";
     $sth = $this->get('connection')->prepare($sql);
     $sth->execute(['id' => $urlId]);
     $urlChecks = $sth->fetchAll();
