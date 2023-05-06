@@ -42,8 +42,8 @@
                             <tr>
                                 <td><?= $url['id']?></th>
                                 <td><a href="/urls/<?= $url['id']?>"><?= $url['name']?></a></th>
-                                <td><?= $url['max'] ?? null ?></th>
-                                <td><?= $url['status_code'] ?></th>
+                                <td><?= $datesOfCheck[$url['id']]['created_at'] ?? null ?></th>
+                                <td><?= $datesOfCheck[$url['id']]['status_code'] ?? null ?></th>
                             </tr>
                         <?php endforeach ?>
                     </tbody>

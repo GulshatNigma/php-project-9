@@ -31,7 +31,7 @@ $container->set('connection', function () {
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
-
+/*
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 $customErrorHandler = function () use ($app) {
@@ -39,7 +39,7 @@ $customErrorHandler = function () use ($app) {
     return $this->get('renderer')->render($response, "error.phtml");
 };
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
-
+*/
 $router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) {
@@ -89,16 +89,19 @@ $app->post('/urls', function ($request, $response) use ($router) {
 })->setName('urls.store');
 
 $app->get('/urls', function ($request, $response) {
-    $sth = $this->get('connection')->prepare("SELECT urls.id, urls.name,
-                                            url_checks.status_code, MAX(url_checks.created_at) FROM url_checks
-                                            RIGHT JOIN urls ON url_checks.url_id = urls.id 
-                                            GROUP BY urls.name, urls.id, url_checks.status_code, url_checks.url_id
-                                            ORDER BY urls.id DESC;");
+    $sql = "SELECT * FROM urls ORDER BY id DESC";
+    $sql = $this->get('connection')->query($sql);
+    $urls = $sql->fetchAll();
+
+    $sth = $this->get('connection')->prepare("SELECT url_id, created_at, status_code FROM url_checks 
+                                            GROUP BY status_code, url_id, created_at
+                                            ORDER BY url_id DESC");
     $sth->execute();
-    $urls = $sth->fetchAll();
+    $datesOfCheck = $sth->fetchAll();
 
     $params = [
-        'urls' => $urls
+        'urls' => $urls,
+        'datesOfCheck' => collect($datesOfCheck)->keyBy('url_id')->toArray()
     ];
     return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('urls.index');
