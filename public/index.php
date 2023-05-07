@@ -98,7 +98,9 @@ $app->get('/urls', function ($request, $response) {
                                             GROUP BY url_id, status_code, created_at
                                             ORDER BY url_id DESC");
     $sth->execute();
-    $datesOfCheck = collect($sth->fetchAll())->keyBy('url_id')->toArray() ?? null;
+
+    $collection = new Collection($sth->fetchAll());
+    $datesOfCheck = $collection->keyBy('url_id')->toArray();
 
     $params = [
         'urls' => $urls,
