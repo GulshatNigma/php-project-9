@@ -11,7 +11,7 @@ use GuzzleHttp\Client;
 use DiDom\Document;
 use PageAnalyser\Connection;
 use Illuminate\Support;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Arr;
 
 session_start();
 
@@ -25,7 +25,7 @@ $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
 
-$container->set('connection', function () {
+$container->set('database', function () {
     return Connection::connect();
 });
 
@@ -65,9 +65,9 @@ $app->post('/urls', function ($request, $response) use ($router) {
     }
 
     $parsedUrl = parse_url($urlParams['name']);
-    $urlName = $parsedUrl['scheme'] . "://" . $parsedUrl['host'];
+    $urlName = strtolower($parsedUrl['scheme'] . "://" . $parsedUrl['host']);
 
-    $sth = $this->get('connection')->prepare("SELECT id FROM urls WHERE name=:urlName");
+    $sth = $this->get('database')->prepare("SELECT id FROM urls WHERE name=:urlName");
     $sth->execute(['urlName' => $urlName]);
     $row = $sth->fetch();
 
@@ -77,62 +77,60 @@ $app->post('/urls', function ($request, $response) use ($router) {
         return $response->withRedirect($router->urlFor('urls.show', ['id' => $urlId]));
     }
 
-    $sth = $this->get('connection')->prepare("INSERT INTO urls (name, created_at) VALUES(:name, :createdAt)");
+    $sth = $this->get('database')->prepare("INSERT INTO urls (name, created_at) VALUES(:name, :createdAt)");
     $sth->execute(['name' => $urlName, 'createdAt' => Carbon::now()]);
     $params = [
         'url' => $urlName,
     ];
     $this->get('flash')->addMessage('success', "Страница успешно добавлена");
 
-    $urlId = $this->get('connection')->lastInsertId();
+    $urlId = $this->get('database')->lastInsertId();
 
     return $response->withRedirect($router->urlFor('urls.show', ['id' => $urlId]));
 })->setName('urls.store');
 
 $app->get('/urls', function ($request, $response) {
     $sql = "SELECT * FROM urls ORDER BY id DESC";
-    $sql = $this->get('connection')->query($sql);
+    $sql = $this->get('database')->query($sql);
     $urls = $sql->fetchAll();
 
-    $sth = $this->get('connection')->prepare("SELECT url_id, created_at, status_code FROM url_checks 
+    $sth = $this->get('database')->prepare("SELECT url_id, created_at, status_code FROM url_checks 
                                             GROUP BY url_id, status_code, created_at
                                             ORDER BY url_id DESC");
     $sth->execute();
-
-    $collection = new Collection($sth->fetchAll());
-    $datesOfCheck = $collection->keyBy('url_id')->toArray();
+    $datesOfCheck = Arr::keyBy($sth->fetchAll(), 'url_id');
 
     $params = [
         'urls' => $urls,
         'datesOfCheck' => $datesOfCheck
     ];
-    return $this->get('renderer')->render($response, 'index.phtml', $params);
+    return $this->get('renderer')->render($response, 'urls/index.phtml', $params);
 })->setName('urls.index');
 
 $app->get('/urls/{id:[0-9]+}', function ($request, $response, $args) {
     $urlId = $args['id'];
     $flash = $this->get('flash')->getMessages();
 
-    $sql = $this->get('connection')->prepare("SELECT id, name, created_at FROM urls WHERE id=:id");
+    $sql = $this->get('database')->prepare("SELECT id, name, created_at FROM urls WHERE id=:id");
     $sql->execute(['id' => $urlId]);
     $url = $sql->fetch();
 
     $sql = "SELECT id, created_at, status_code, h1, title, description FROM url_checks WHERE url_id = :id
             ORDER BY id DESC";
-    $sth = $this->get('connection')->prepare($sql);
+    $sth = $this->get('database')->prepare($sql);
     $sth->execute(['id' => $urlId]);
     $urlChecks = $sth->fetchAll();
 
     $params = ['flash' => $flash,
                 'url' => $url,
                 'urlChecks' => $urlChecks];
-    return $this->get('renderer')->render($response, 'show.phtml', $params);
+    return $this->get('renderer')->render($response, 'urls/show.phtml', $params);
 })->setName('urls.show');
 
 $app->post('/urls/{url_id:[0-9]+}/checks', function ($request, $response, $args) use ($router) {
     $urlId = $args['url_id'];
 
-    $sth = $this->get('connection')->prepare("SELECT name FROM urls WHERE id=:id");
+    $sth = $this->get('database')->prepare("SELECT name FROM urls WHERE id=:id");
     $sth->execute(['id' => $urlId]);
     $row = $sth->fetch();
     $name = $row['name'] ?? null;
@@ -158,7 +156,7 @@ $app->post('/urls/{url_id:[0-9]+}/checks', function ($request, $response, $args)
 
     $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description)
             VALUES(:url_id, :created_at, :status_code, :h1, :title, :description)";
-    $sth = $this->get('connection')->prepare($sql);
+    $sth = $this->get('database')->prepare($sql);
     $sth->execute(['url_id' => $urlId,
                     'created_at' => Carbon::now(),
                     'status_code' => $pageResponse->getStatusCode(),
