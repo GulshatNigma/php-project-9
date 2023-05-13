@@ -12,6 +12,8 @@ use DiDom\Document;
 use PageAnalyser\Connection;
 use Illuminate\Support;
 use Illuminate\Support\Arr;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 session_start();
 
@@ -139,7 +141,10 @@ $app->post('/urls/{url_id:[0-9]+}/checks', function ($request, $response, $args)
 
     try {
         $pageResponse = $client->request('GET', $name);
-    } catch (Exception) {
+    } catch (RequestException) {
+        $this->get('flash')->addMessage('danger', "Проверка была выполнена успешно, но сервер ответил c ошибкой");
+        return $response->withStatus(404)->withRedirect($router->urlFor('urls.show', ['id' => $urlId]));
+    } catch (ConnectException) {
         $this->get('flash')->addMessage('danger', "Произошла ошибка при проверке, не удалось подключиться");
         return $response->withStatus(404)->withRedirect($router->urlFor('urls.show', ['id' => $urlId]));
     }
